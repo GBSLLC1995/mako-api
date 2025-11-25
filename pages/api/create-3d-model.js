@@ -37,15 +37,16 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          image_url: imageDataUrl, // data URL from Framer
-          ai_model: "meshy-4",     // you can tweak later
+          image_url: imageDataUrl,             // data URL from Framer
+          ai_model: "meshy-4",
+          topology: "triangle",
+          target_polycount: 10000,
           should_remesh: true,
-          should_texture: true,
+          should_texture: false             // no textures
         }),
       }
     );
 
-    // Try to parse JSON, but fall back to raw text for debugging
     let data;
     try {
       data = await meshyRes.json();
