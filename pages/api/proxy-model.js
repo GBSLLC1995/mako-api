@@ -1,32 +1,31 @@
+// pages/api/proxy-model.js
 export default async function handler(req, res) {
   const { url } = req.query;
 
-  if (!url) {
-    return res.status(400).json({ error: "url is required" });
+  if (!url || typeof url !== "string") {
+    return res.status(400).send("Missing url parameter");
   }
 
   try {
-    const upstreamRes = await fetch(url);
+    const upstream = await fetch(url);
 
-    if (!upstreamRes.ok) {
-      const text = await upstreamRes.text();
-      console.error("Upstream Meshy error:", upstreamRes.status, text);
-      return res.status(502).json({ error: "Upstream fetch failed" });
+    if (!upstream.ok) {
+      console.error("Proxy upstream error:", upstream.status, url);
+      return res.status(upstream.status).send("Upstream error");
     }
 
     // Allow your Framer site to load this
     res.setHeader("Access-Control-Allow-Origin", "*");
 
-    // Pass through content-type (usually model/gltf-binary)
-    res.setHeader(
-      "Content-Type",
-      upstreamRes.headers.get("content-type") || "model/gltf-binary"
-    );
+    // Preserve content type (should be model/gltf-binary)
+    const contentType =
+      upstream.headers.get("content-type") || "application/octet-stream";
+    res.setHeader("Content-Type", contentType);
 
-    const buffer = await upstreamRes.arrayBuffer();
-    res.status(200).send(Buffer.from(buffer));
+    const buffer = Buffer.from(await upstream.arrayBuffer());
+    res.send(buffer);
   } catch (err) {
     console.error("Proxy error:", err);
-    res.status(500).json({ error: "Proxy error" });
+    res.status(500).send("Proxy error");
   }
 }
