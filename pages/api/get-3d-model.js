@@ -53,15 +53,14 @@ export default async function handler(req, res) {
 
     // Only pick a model URL when the task has actually finished successfully
     if (status === "SUCCEEDED") {
-      const objUrl = urls.obj || null;
       const glbUrl = urls.glb || null;
       const fbxUrl = urls.fbx || null;
       const usdzUrl = urls.usdz || null;
       const preRemeshedGlb = urls.pre_remeshed_glb || null;
 
-      // Prefer OBJ → then GLB → FBX → USDZ → pre-remeshed GLB
+      // Prefer GLB → FBX → USDZ → pre-remeshed GLB
       modelUrl =
-        objUrl || glbUrl || fbxUrl || usdzUrl || preRemeshedGlb || null;
+        || glbUrl || fbxUrl || usdzUrl || preRemeshedGlb || null;
     }
 
     // Don’t treat missing modelUrl as an error if status isn’t SUCCEEDED yet.
@@ -70,7 +69,7 @@ export default async function handler(req, res) {
       status,
       progress: task.progress,
       thumbnailUrl: task.thumbnail_url,
-      modelUrl,     // chosen URL (OBJ if available)
+      modelUrl,     // chosen URL (GBL if available)
       modelUrls: urls, // all formats in case you need them
       taskError: task.task_error || null,
     });
