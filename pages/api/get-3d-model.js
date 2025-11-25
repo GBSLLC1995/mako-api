@@ -9,25 +9,21 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
+
   if (!id) {
     return res.status(400).json({ error: "id is required" });
   }
 
   if (!process.env.MESHY_API_KEY) {
-    return res
-      .status(500)
-      .json({ error: "MESHY_API_KEY is not set on the server" });
+    return res.status(500).json({ error: "MESHY_API_KEY is not set on the server" });
   }
 
   try {
-    const meshyRes = await fetch(
-      `https://api.meshy.ai/openapi/v1/image-to-3d/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.MESHY_API_KEY}`,
-        },
-      }
-    );
+    const meshyRes = await fetch(https://api.meshy.ai/openapi/v1/image-to-3d/${id}, {
+      headers: {
+        "Authorization": Bearer ${process.env.MESHY_API_KEY},
+      },
+    });
 
     const task = await meshyRes.json();
 
@@ -39,28 +35,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Pull the available model URLs
-    const urls = task.model_urls || {};
-
-    // OBJ first → fallback to GLB
-    const objUrl = urls.obj || null;
-    const glbUrl = urls.glb || null;
-    const chosenUrl = objUrl || glbUrl;
-
-    if (!chosenUrl) {
-      return res.status(500).json({
-        error: "No model URL available",
-        details: urls,
-      });
-    }
-
     return res.status(200).json({
       status: task.status,
       progress: task.progress,
       thumbnailUrl: task.thumbnail_url,
-      modelUrl: chosenUrl, // <-- what Framer should use
-      modelUrls: urls,     // <-- in case you want all formats
+      modelUrls: task.model_urls,
     });
+
   } catch (err) {
     console.error("Server error in get-3d-model:", err);
     return res.status(500).json({ error: "Internal server error" });
