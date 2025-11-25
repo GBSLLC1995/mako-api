@@ -34,15 +34,28 @@ export default async function handler(req, res) {
       });
     }
 
+    // Pick OBJ format if available, fallback to GLB
+    const urls = task.model_urls || {};
+    const objUrl = urls.obj || null;
+    const glbUrl = urls.glb || null;
+    const chosenUrl = objUrl || glbUrl;
+
+    if (!chosenUrl) {
+      // Unexpected—no usable model URL found
+      return res.status(500).json({
+        error: "No model URL available",
+        details: urls,
+      });
+    }
+
     return res.status(200).json({
       status: task.status,
       progress: task.progress,
       thumbnailUrl: task.thumbnail_url,
-      modelUrls: task.model_urls,
+      modelUrl: chosenUrl,
     });
   } catch (err) {
     console.error("Server error in get-3d-model:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
-
